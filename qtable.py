@@ -5,6 +5,16 @@ the policy as the argmax of the Q-table column corresponding to the current stat
 
 Once trained, use rendertrial to sample an initial state randomly and rollout the
 optimize policy from this initial state.
+
+The environment is discretized, and both state and control are represented by the
+index of the state and the action:
+ x \in [ 0 ... NX [
+ u \in [ 0 ... NU [
+A table inside the environment model is used to pass from the index representation
+to a more useful representation used to run the simulator.
+
+Then the Q-value evaluated at x,u is given by Q[x,u] where Q is a table of dimension NX x NU
+and [x,u] stands for the coefficent x and u (both integer) of the table Q.
 '''
 
 import numpy as np

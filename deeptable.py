@@ -5,6 +5,30 @@ implementation. It is given for pedagogic purpose to make the link between Q-tab
 the Q-learn algorithm by Mnih and Volodymyr. 
 
 The implementation works well for the pendulum, but fail to generalize for the car-like system.
+
+The Q value is stored in a neural network that exactly matches the Q-Table representation (See
+qtable.py):
+  Q(x) = A_Q 1_x,
+where A_Q is the matrix corresponding to the internal layer of the network, 
+and 1_x is a vector [ 0 0  ... 0 1 0 ... 0] = onehot(x) where only the coefficient corresponding to 
+the state. 
+
+Here the representation using a neural network is overkill as it is equivalent to a table. The idea
+is that the same algorithm is stil valid for any other representation, for example to handle
+an environment where the state is the pixels of an image, and the first layers of the network 
+are some convolutional functions.
+
+The vector A_q 1_x is indeed the column indexed by x in A_q, i.e. A_q[x,:] in Python style.
+Then the Q values for any u is given by Q(x) = A_q 1_x = [ Q(x,0) ... Q(x,NU-1) ].
+The Q-value for a particular x-u pair is given by (A_q 1_x)[u] when [u] stand for the coefficient
+indexed by u (integer) in the vector (A_q 1_x).
+
+The optimal policy is the argmax of this vector: 
+   Pi(x) = argmax (A_q 1_x)
+
+As we have a network, we are in the classical neural framework where a given objective
+can be optimized using the network gradient. Here we optimize the HJB residuals evaluated
+at the current simulator step.
 '''
 
 import numpy as np
