@@ -30,6 +30,8 @@ NEPISODES               = 500           # Number of training episodes
 NSTEPS                  = 50            # Max episode length
 LEARNING_RATE           = 0.1           # Step length in optimizer
 DECAY_RATE              = 0.99          # Discount factor 
+PRE_TRAIN               = None          # None, "pre", "full"
+ALGO_NAME               = 'deeptable'
 
 ### --- Environment
 env = Env(**Env.args)
@@ -92,6 +94,10 @@ h_rwd = []                              # Learning history (for plot).
 ### ---------------------------------------------------------------------------------------
 ### --- Training --------------------------------------------------------------------------
 ### ---------------------------------------------------------------------------------------
+
+if PRE_TRAIN:
+    tf.train.Saver().restore(sess, "netvalues/%s.%s.%s.ckpt" % (ALGO_NAME,str(Env), PRE_TRAIN) )
+#tf.train.Saver().save(sess, "netvalues/%s.%s.%s.ckpt" % (ALGO_NAME,str(Env), PRE_TRAIN) )
 
 for episode in range(1,NEPISODES):
     x    = env.reset()

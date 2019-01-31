@@ -125,7 +125,8 @@ class Cozmo1(object):
         '''
         if self.discretize_u is not None and isinstance(u,np.ndarray): u = u.flat[0]
         self.u = u
-        u = self.decode_u(u)[0]
+        u = self.decode_u(u)
+        if len(u.shape)>1: u=u[0]
         if self.discretize_u is None: self.u = u = np.clip(u,self.umin,self.umax)
         x = self.decode_x(self.x).copy()
         for i in range(self.integrationSteps):

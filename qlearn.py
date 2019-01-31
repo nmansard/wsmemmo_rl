@@ -43,6 +43,8 @@ UPDATE_RATE             = 0.01          # Homotopy rate to update the networks
 REPLAY_SIZE             = 10000         # Size of replay buffer
 BATCH_SIZE              = 64            # Number of points to be fed in stochastic gradient
 NH1 = NH2               = 32            # Hidden layer size
+PRE_TRAIN               = None          # None, 'pre', 'full'
+ALGO_NAME               = 'qlearn'
 
 ### --- Environment
 env                 = Env(**Env.args)
@@ -140,9 +142,6 @@ qvalueTarget. setupTargetAssign(qvalue,updateRate=UPDATE_RATE)
 sess            = tf.InteractiveSession()
 tf.global_variables_initializer().run()
 
-# Uncomment to restore networks
-#tf.train.Saver().restore(sess, "netvalues/qlearn_cozmo1.ckpt")
-
 def noisygreedy(x,rand=None):
     q = sess.run(qvalue.qvalues,feed_dict={ qvalue.x: x })
     if rand is not None: q += np.random.randn(1,env.nu)*rand
@@ -167,6 +166,10 @@ h_ste = []
 ### ---------------------------------------------------------------------------------------
 ### --- Training --------------------------------------------------------------------------
 ### ---------------------------------------------------------------------------------------
+
+if PRE_TRAIN:
+    tf.train.Saver().restore(sess, "netvalues/%s.%s.%s.ckpt" % (ALGO_NAME,str(Env), PRE_TRAIN) )
+#tf.train.Saver().save(sess, "netvalues/%s.%s.%s.ckpt" % (ALGO_NAME,str(Env), PRE_TRAIN) )
 
 for episode in range(1,NEPISODES):
     x    = env.reset()

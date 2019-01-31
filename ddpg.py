@@ -3,8 +3,8 @@ Deep actor-critic network,
 From "Continuous control with deep reinforcement learning", by Lillicrap et al, arXiv:1509.02971
 '''
 
-#from pendulummodel import Pendulum as Env; Env.args = { 'withSinCos': True }
-from cozmomodel import Cozmo1 as Env; Env.args = {}
+from pendulummodel import Pendulum as Env; Env.args = { 'withSinCos': True }
+#from cozmomodel import Cozmo1 as Env; Env.args = {}
 import tensorflow as tf
 import numpy as np
 import tflearn
@@ -34,6 +34,8 @@ UPDATE_RATE             = 0.01          # Homotopy rate to update the networks
 REPLAY_SIZE             = 10000         # Size of replay buffer
 BATCH_SIZE              = 64            # Number of points to be fed in stochastic gradient
 NH1 = NH2               = 250           # Hidden layer size
+PRE_TRAIN               = None          # "pre", "full"
+ALGO_NAME               = 'ddpg'
 
 ### --- Environment
 env                 = Env(**Env.args)   # Continuous pendulum
@@ -137,10 +139,6 @@ qvalueTarget    = QValueNetwork(). setupTargetAssign(qvalue)
 sess            = tf.InteractiveSession()
 tf.global_variables_initializer().run()
 
-# Uncomment to save or restore networks
-#tf.train.Saver().restore(sess, "netvalues/actorcritic.pre.ckpt")
-#tf.train.Saver().save   (sess, "netvalues/actorcritic.full.ckpt")
-
 def rendertrial(maxiter=NSTEPS,verbose=True):
     x = env.reset()
     rsum = 0.
@@ -165,6 +163,10 @@ h_ste = []
 ### ---------------------------------------------------------------------------------------
 ### --- Training --------------------------------------------------------------------------
 ### ---------------------------------------------------------------------------------------
+
+if PRE_TRAIN:
+    tf.train.Saver().restore(sess, "netvalues/%s.%s.%s.ckpt" % (ALGO_NAME,str(Env), PRE_TRAIN) )
+#tf.train.save().restore(sess, "netvalues/%s.%s.%s.ckpt" % (ALGO_NAME,str(Env), PRE_TRAIN) )
 
 for episode in range(1,NEPISODES):
     x    = env.reset()
