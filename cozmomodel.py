@@ -88,6 +88,7 @@ class Cozmo1(object):
     def nu(self): return 2 if self.discretize_u is None else self.discretize_u.nd
     @property
     def nx(self): return 4 if self.discretize_x is None else self.discretize_x.nd
+    nobs = nx
     
     def render(self,sleep=.01,ion=True,newfig=False):
         '''
@@ -124,7 +125,7 @@ class Cozmo1(object):
         '''
         if self.discretize_u is not None and isinstance(u,np.ndarray): u = u.flat[0]
         self.u = u
-        u = self.decode_u(u)
+        u = self.decode_u(u)[0]
         if self.discretize_u is None: self.u = u = np.clip(u,self.umin,self.umax)
         x = self.decode_x(self.x).copy()
         for i in range(self.integrationSteps):

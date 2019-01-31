@@ -115,7 +115,7 @@ class Pendulum:
     See tp1.py for an example of use.
     '''
 
-    def __init__(self,nbJoint=1):
+    def __init__(self,nbJoint=1, withSinCos = False):
         '''Create a Pinocchio model of a N-pendulum, with N the argument <nbJoint>.'''
         self.viewer     = Display()
         self.visuals    = []
@@ -130,7 +130,7 @@ class Pendulum:
         self.Kf         = .10    # Friction coefficient
         self.vmax       = 8.0    # Max velocity (clipped if larger)
         self.umax       = 2.0    # Max torque   (clipped if larger)
-        self.withSinCos = False   # If true, state is [cos(q),sin(q),qdot], else [q,qdot]
+        self.withSinCos = withSinCos   # If true, state is [cos(q),sin(q),qdot], else [q,qdot]
 
     def createPendulum(self,nbJoint,rootId=0,prefix='',jointPlacement=None):
         color   = [red,green,blue,transparency] = [1,1,0.78,1.0]
@@ -196,9 +196,9 @@ class Pendulum:
 
     def obs(self,x):
         if self.withSinCos:
-            return np.vstack([ np.vstack([np.cos(qi),np.sin(qi)]) for qi in x[:self.nq] ] 
-                             + [x[self.nq:]],)
-        else: return x.copy()
+            return np.array(np.vstack([ np.vstack([np.cos(qi),np.sin(qi)]) for qi in x[:self.nq] ] 
+                                      + [x[self.nq:]],)).T
+        else: return np.array(x).T.copy()
 
     def tip(self,q):
         '''Return the altitude of pendulum tip'''

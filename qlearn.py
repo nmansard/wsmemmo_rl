@@ -16,7 +16,6 @@ Mnih, Volodymyr, et al. "Human-level control through deep reinforcement learning
 Nature 518.7540 (2015): 529.
 '''
 
-#from pendulummodel import DiscretePendulum as Env; Env.args = {}
 from cozmomodel import Cozmo1 as Env; Env.args = { 'discretize_u': True }
 from collections import deque
 import time
@@ -146,7 +145,7 @@ tf.global_variables_initializer().run()
 
 def noisygreedy(x,rand=None):
     q = sess.run(qvalue.qvalues,feed_dict={ qvalue.x: x })
-    if rand is not None: q += (np.random.rand(env.nu)*2-1)*rand
+    if rand is not None: q += np.random.randn(1,env.nu)*rand
     return np.argmax(q)
 
 def rendertrial(maxiter=NSTEPS,verbose=True):

@@ -15,6 +15,7 @@ import signal
 import time
 
 from pendulummodel import DiscretePendulum as Env; Env.args = {}
+# Beware: not working for the car-like robot
 #from cozmomodel import Cozmo1 as Env; Env.args = { 'discretize_x': True, 'discretize_u': True }
 
 
@@ -35,7 +36,12 @@ env = Env(**Env.args)
 NX  = env.nx
 NU  = env.nu
 
-### --- Q-value networks
+### ---------------------------------------------------------------------------------------
+### ---------------------------------------------------------------------------------------
+### ---------------------------------------------------------------------------------------
+
+### --- Q-value anetwork
+
 class QValueNetwork:
     def __init__(self):
         x               = tf.placeholder(shape=[1,NX],dtype=tf.float32)
@@ -52,6 +58,10 @@ class QValueNetwork:
         self.u          = u             # Policy  as a function of x
         self.qref       = qref          # Reference Q-value at next step (to be set to l+Q o f)
         self.optim      = optim         # Optimizer      
+
+### ---------------------------------------------------------------------------------------
+### ---------------------------------------------------------------------------------------
+### ---------------------------------------------------------------------------------------
 
 ### --- Tensor flow initialization
 tf.reset_default_graph()
@@ -79,7 +89,10 @@ signal.signal(signal.SIGTSTP, lambda x,y:rendertrial()) # Roll-out when CTRL-Z i
 ### --- History of search
 h_rwd = []                              # Learning history (for plot).
 
-### --- Training
+### ---------------------------------------------------------------------------------------
+### --- Training --------------------------------------------------------------------------
+### ---------------------------------------------------------------------------------------
+
 for episode in range(1,NEPISODES):
     x    = env.reset()
     rsum = 0.0
