@@ -53,9 +53,24 @@ NU                  = env.nu            # Control is dim-1: joint torque
 ### ---------------------------------------------------------------------------------------
 ### ---------------------------------------------------------------------------------------
 
-### --- Q-value anetwork
+### --- Q-value network
 
 class QValueNetwork:
+    '''
+    The Q-network is organized as follows:
+
+     ________________________________________
+    / x >> NetX1 >> NetX2 >> 
+    |                    >> NET >> QNET >> q
+    | u >> NetU1 >> NetU2 >> 
+    \________________________________________
+
+    In addition, the class provides gradient and target network:
+    -  the gradient of the Q-function with respect to variable u in self.gradient.
+    -  the target network makes homotopy between the current parameters and the paramter
+    of a target network (i.e. takes a weighted mean between current and target network)
+    parameters.
+    '''
     def __init__(self):
         nvars           = len(tf.trainable_variables())
 
@@ -95,6 +110,16 @@ class QValueNetwork:
 ### --- Policy networks
 
 class PolicyNetwork:
+    '''
+    The policy network is defined as a 2-hidden-layers with tanh activation on the output.
+     ______________________________________
+    /  
+    |  x >> NH1 >> NH2 >> TANH u
+    \______________________________________
+
+    The class also provides a policy optimizer whose gradient are approximated from the Q-value
+    gradient dQ/du, and a target network.
+    '''
     def __init__(self):
         nvars           = len(tf.trainable_variables())
 
@@ -171,6 +196,27 @@ h_ste = []
 ### --- Training --------------------------------------------------------------------------
 ### ---------------------------------------------------------------------------------------
 
+'''
+The training rationale is as follows:
+
+- We run a number of episodes in the outward for loop. Each episod corresponds to a complete
+  trial on the system, from a random state to either a success, a failure or too many steps.
+- For each episode, we move the system, collect data, sample a minibatch and optimize.
+     -1- the simulation is moved of one step following the current value of the candidate optimal 
+         policy.
+     -2- we put the data corresponding to this step in a batch of data: state before and after
+         the step, value of the control function, reward collected for the step, possible 
+         success of the episod.
+     -3- We take a few data from the minibatch, randomly (this is to break the temporal structure 
+         that is preventing good convergence of the network).
+     -4- Optimization
+         -a- We run one step of optimization for both the target policy network and the target 
+             Q network. The Q network optimizes the HJB residuals ; the policy network
+             optimizes in the direction of the policy gradient estimated from the Q network.
+         -b- We slightly change the parameters of the current Q and policy networks in the direction
+             of the parameers of the correspondin target networks.
+'''
+
 if PRE_TRAIN:
     tf.train.Saver().restore(sess, "netvalues/%s.%s.%s.ckpt" % (ALGO_NAME,str(Env), PRE_TRAIN) )
 #tf.train.save().restore(sess, "netvalues/%s.%s.%s.ckpt" % (ALGO_NAME,str(Env), PRE_TRAIN) )
@@ -180,12 +226,16 @@ for episode in range(1,NEPISODES):
     rsum = 0.0
 
     for step in range(NSTEPS):
+
+        # --- 1 --- Run a step with the agent ------------------------------------------------
         u       = sess.run(policy.policy, feed_dict={ policy.x: x }) # Greedy policy ...
         u      += unoise(1. / (1. + episode + step))                 # ... with noise
         x2,r    = env.step(u)
         x2      = x2
         done    = False                                              # pendulum scenario is endless.
 
+
+        # --- 2 --- Collect data ----------------------------------------------------------------
         replayDeque.append(ReplayItem(x,u,r,done,x2))                # Feed replay memory ...
         if len(replayDeque)>REPLAY_SIZE: replayDeque.popleft()       # ... with FIFO forgetting.
 
@@ -195,6 +245,8 @@ for episode in range(1,NEPISODES):
 
         # Start optimizing networks when memory size > batch size.
         if len(replayDeque) > BATCH_SIZE:     
+
+            # --- 3 --- Sample some data from the batch ------------------------------------------
             batch = random.sample(replayDeque,BATCH_SIZE)            # Random batch from replay memory.
             x_batch    = np.vstack([ b.x      for b in batch ])
             u_batch    = np.vstack([ b.u      for b in batch ])
@@ -202,6 +254,8 @@ for episode in range(1,NEPISODES):
             d_batch    = np.vstack([ b.done   for b in batch ])
             x2_batch   = np.vstack([ b.x2     for b in batch ])
 
+
+            # --- 4a --- Optimization: gradient step ----------------------------------------------
             # Compute Q(x,u) from target network
             u2_batch   = sess.run(policyTarget.policy, feed_dict={ policyTarget .x : x2_batch})
             q2_batch   = sess.run(qvalueTarget.qvalue, feed_dict={ qvalueTarget.x : x2_batch,
@@ -221,6 +275,7 @@ for episode in range(1,NEPISODES):
             sess.run(policy.optim,feed_dict= { policy.x         : x_batch,
                                                policy.qgradient : qgrad })
 
+            # --- 4b --- Optimization: homotopy step ----------------------------------------------
             # Update target networks by homotopy.
             sess.run(policyTarget. update_variables)
             sess.run(qvalueTarget.update_variables)
