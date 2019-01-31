@@ -1,5 +1,12 @@
 '''
-Deep actor-critic network, 
+Deep actor-critic network.
+
+Train two networks: actor (policy) and critic (value) simultaneously.
+
+Works for any continuous (state and control) systems. 
+
+It implements mini-batch optimization and target network.
+
 From "Continuous control with deep reinforcement learning", by Lillicrap et al, arXiv:1509.02971
 '''
 

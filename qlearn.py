@@ -1,4 +1,10 @@
 '''
+In brief: run the script. You will see some reports of the algorithm activity 
+on the output, and every 200 episode, a roll-out of the current policy value
+is displayed (very bad in the begining, get improving). 
+Change the PRE_TRAIN value to 'pre' or 'full' for loading some pre-optimized values
+of the neural-network parameter. 
+
 Train a Q-value following a classical Q-learning algorithm (enforcing the
 satisfaction of HJB method), using a noisy greedy exploration strategy.
 
@@ -35,8 +41,8 @@ tf .set_random_seed (RANDOM_SEED)
 random.seed         (RANDOM_SEED)
 
 ### --- Hyper paramaters
-NEPISODES               = 10000           # Max training steps
-NSTEPS                  = 60           # Max episode length
+NEPISODES               = 3000          # Max training steps
+NSTEPS                  = 60            # Max episode length
 QVALUE_LEARNING_RATE    = 0.001         # Base learning rate for the Q-value Network
 DECAY_RATE              = 0.99          # Discount factor 
 UPDATE_RATE             = 0.01          # Homotopy rate to update the networks

@@ -1,5 +1,7 @@
 '''
-Example of Q-table learning with a simple discretized 1-pendulum environment.
+Simple Q-table algorithm. Works for discretize (both in state and control)
+systems. Compute an approximation of the Q value stored in a table, and compute
+the policy as the argmax of the Q-table column corresponding to the current state.
 '''
 
 import numpy as np
