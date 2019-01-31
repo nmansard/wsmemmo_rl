@@ -1,2 +1,2 @@
-model_checkpoint_path: "ddpg.pendulummodel.Pendulum.full.ckpt"
-all_model_checkpoint_paths: "ddpg.pendulummodel.Pendulum.full.ckpt"
+model_checkpoint_path: "qlearn.<class \'cozmomodel.Cozmo1\'>.full.ckpt"
+all_model_checkpoint_paths: "qlearn.<class \'cozmomodel.Cozmo1\'>.full.ckpt"
