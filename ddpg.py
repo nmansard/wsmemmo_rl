@@ -196,6 +196,10 @@ h_ste = []
 ### --- Training --------------------------------------------------------------------------
 ### ---------------------------------------------------------------------------------------
 
+if PRE_TRAIN:
+    tf.train.Saver().restore(sess, "netvalues/%s.%s.%s.ckpt" % (ALGO_NAME,str(Env), PRE_TRAIN) )
+#tf.train.save().restore(sess, "netvalues/%s.%s.%s.ckpt" % (ALGO_NAME,str(Env), PRE_TRAIN) )
+
 '''
 The training rationale is as follows:
 
@@ -216,10 +220,6 @@ The training rationale is as follows:
          -b- We slightly change the parameters of the current Q and policy networks in the direction
              of the parameers of the correspondin target networks.
 '''
-
-if PRE_TRAIN:
-    tf.train.Saver().restore(sess, "netvalues/%s.%s.%s.ckpt" % (ALGO_NAME,str(Env), PRE_TRAIN) )
-#tf.train.save().restore(sess, "netvalues/%s.%s.%s.ckpt" % (ALGO_NAME,str(Env), PRE_TRAIN) )
 
 for episode in range(1,NEPISODES):
     x    = env.reset()

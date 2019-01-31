@@ -123,6 +123,16 @@ if PRE_TRAIN:
     tf.train.Saver().restore(sess, "netvalues/%s.%s.%s.ckpt" % (ALGO_NAME,str(Env), PRE_TRAIN) )
 #tf.train.Saver().save(sess, "netvalues/%s.%s.%s.ckpt" % (ALGO_NAME,str(Env), PRE_TRAIN) )
 
+'''
+The training rationale is as follows:
+- We run a number of episodes in the outward for loop. Each episod corresponds to a complete
+  trial on the system, from a random state to either a success, a failure or too many steps.
+- For each episode, we move the system and change the Q table accordingly.
+   -1- Make a step, using the current optimized policy to compute the control u.
+   -2- Change the Q-table accordingly, by trying to make the column of the Q table corresponding
+       to the previous step matching the column of the next state, following the HJB equation.
+'''
+
 for episode in range(1,NEPISODES):
     x    = env.reset()
     rsum = 0.0
