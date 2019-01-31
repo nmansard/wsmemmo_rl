@@ -2,6 +2,9 @@
 Simple Q-table algorithm. Works for discretize (both in state and control)
 systems. Compute an approximation of the Q value stored in a table, and compute
 the policy as the argmax of the Q-table column corresponding to the current state.
+
+Once trained, use rendertrial to sample an initial state randomly and rollout the
+optimize policy from this initial state.
 '''
 
 import numpy as np
@@ -28,7 +31,17 @@ NU  = env.nu                            # Number of (discrete) controls
 env.x0     = env.encode_x(np.array([0.,0.,1.,0.])) # State 665
 env.cost = lambda x,u: env.encode_x(x)==env.x0     # Problem solved if reached 0010
 
+### ---------------------------------------------------------------------------------------
+### ---------------------------------------------------------------------------------------
+### ---------------------------------------------------------------------------------------
+
+### --- Q value represention
+
 Q     = np.zeros([env.nx,env.nu])       # Q-table initialized to 0
+
+### ---------------------------------------------------------------------------------------
+### ---------------------------------------------------------------------------------------
+### ---------------------------------------------------------------------------------------
 
 def rendertrial(maxiter=100):
     '''Roll-out from random state using greedy policy.'''
@@ -42,13 +55,30 @@ def rendertrial(maxiter=100):
 signal.signal(signal.SIGTSTP, lambda x,y:rendertrial()) # Roll-out when CTRL-Z is pressed
 h_rwd = []                              # Learning history (for plot).
 
+### ---------------------------------------------------------------------------------------
+### --- Training --------------------------------------------------------------------------
+### ---------------------------------------------------------------------------------------
+
+'''
+The training rationale is as follows:
+- We run a number of episodes in the outward for loop. Each episod corresponds to a complete
+  trial on the system, from a random state to either a success, a failure or too many steps.
+- For each episode, we move the system and change the Q table accordingly.
+   -1- Make a step, using the current optimized policy to compute the control u.
+   -2- Change the Q-table accordingly, by trying to make the column of the Q table corresponding
+       to the previous step matching the column of the next state, following the HJB equation.
+'''
+
 for episode in range(1,NEPISODES):
     x    = env.reset()
     rsum = 0.0
     for steps in range(NSTEPS):
+
+        # --- 1 --- Run a step with the agent ------------------------------------------------
         u         = np.argmax(Q[x,:] + np.random.randn(1,NU)/episode) # Greedy action with noise
         x2,reward = env.step(u)
         
+        # --- 2 --- Optimization --------------------------------------------------------------
         # Compute reference Q-value at state x respecting HJB
         Qref = reward + DECAY_RATE*np.max(Q[x2,:])
 
